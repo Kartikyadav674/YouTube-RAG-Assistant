@@ -8,3 +8,4 @@ langchain-huggingface
 faiss-cpu
 python-dotenv
 langchain-groq
+sentence-transformers
