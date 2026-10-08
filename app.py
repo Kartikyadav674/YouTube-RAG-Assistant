@@ -106,8 +106,8 @@ if st.button("Get Answer"):
                         temperature=0.2
                     )
                 elif provider == "Local Ollama":
-                    from langchain_community.chat_models import ChatOllama
-                    llm = ChatOllama(
+                    from langchain_community.llms import Ollama
+                    llm = Ollama(
                         model=ollama_model,
                         temperature=0.2
                     )
