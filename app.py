@@ -12,12 +12,21 @@ from langchain_groq import ChatGroq
 st.set_page_config(page_title="YouTube RAG Assistant", layout="centered")
 
 st.title("📺 YouTube RAG Assistant")
-st.markdown("Ask questions about any YouTube video using Llama 3 via Groq API.")
+st.markdown("Ask questions about any YouTube video using Groq or local Ollama models.")
 st.markdown("*Showcasing a fast retrieval-augmented generation pipeline.*")
 
 st.sidebar.title("Configuration")
-groq_api_key = st.sidebar.text_input("Groq API Key", type="password")
-st.sidebar.markdown("[Get a free Groq API key here](https://console.groq.com/keys)")
+provider = st.sidebar.selectbox("Select Model Provider", ["Groq", "Local Ollama"])
+
+groq_api_key = None
+ollama_model = None
+
+if provider == "Groq":
+    groq_api_key = st.sidebar.text_input("Groq API Key", type="password")
+    st.sidebar.markdown("[Get a free Groq API key here](https://console.groq.com/keys)")
+elif provider == "Local Ollama":
+    ollama_model = st.sidebar.text_input("Ollama Model Name", value="llama3")
+    st.sidebar.markdown("Make sure Ollama is running locally. *Note: Local models can't be used when deployed to the cloud.*")
 
 # Initialize session state for vector store
 if "vector_store" not in st.session_state:
@@ -87,15 +96,21 @@ if st.button("Get Answer"):
                 
                 final_prompt = prompt.invoke({"context": context_text, "question": question})
                 
-                if not groq_api_key:
-                    st.error("Please enter a Groq API Key in the sidebar.")
-                    st.stop()
-                
-                llm = ChatGroq(
-                    groq_api_key=groq_api_key,
-                    model_name="llama3-8b-8192",   
-                    temperature=0.2
-                )
+                if provider == "Groq":
+                    if not groq_api_key:
+                        st.error("Please enter a Groq API Key in the sidebar.")
+                        st.stop()
+                    llm = ChatGroq(
+                        groq_api_key=groq_api_key,
+                        model_name="llama3-8b-8192",   
+                        temperature=0.2
+                    )
+                elif provider == "Local Ollama":
+                    from langchain_community.chat_models import ChatOllama
+                    llm = ChatOllama(
+                        model=ollama_model,
+                        temperature=0.2
+                    )
                 
                 answer = llm.invoke(final_prompt.text)
                 st.markdown("### Answer:")
